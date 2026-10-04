@@ -1,0 +1,90 @@
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Rendering;
+
+namespace Playble.EchoLoop
+{
+    /// <summary>
+    /// Lazily builds and caches the handful of URP materials the game needs.
+    /// Nothing is authored as an asset: the entire visual language is code, which
+    /// keeps the repository free of binary art dependencies.
+    /// </summary>
+    public static class MaterialLibrary
+    {
+        static readonly Dictionary<int, Material> _lit = new Dictionary<int, Material>();
+        static readonly Dictionary<int, Material> _unlit = new Dictionary<int, Material>();
+
+        public static Material Lit(Color color, float smoothness = 0.35f, float metallic = 0f, float emission = 0f)
+        {
+            int key = Key(color, smoothness, metallic, emission);
+            if (_lit.TryGetValue(key, out var cached)) return cached;
+
+            var shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+            var mat = new UnityEngine.Object.Instantiate(shader != null ? shader : null);
+            mat.name = "PB_Lit_" + key.ToString("X");
+            mat.SetColor("_BaseColor", color);
+            mat.SetColor("_Color", color);
+            mat.SetFloat("_Smoothness", smoothness);
+            mat.SetFloat("_Glossiness", smoothness);
+            mat.SetFloat("_Metallic", metallic);
+
+            if (emission > 0f)
+            {
+                mat.EnableKeyword("_EMISSION");
+                mat.SetColor("_EmissionColor", color * emission);
+                mat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+            }
+
+            _lit[key] = mat;
+            return mat;
+        }
+
+        public static Material Glowing(Color color, float intensity = 2.2f, float smoothness = 0.6f)
+        {
+            return Lit(color, smoothness, 0f, intensity);
+        }
+
+        /// <summary>Flat, unlit, unshadowed colour — used for the ghost echoes.</summary>
+        public static Material Ghost(Color color, float alpha)
+        {
+            int key = Key(color, alpha, 0f, 0f);
+            if (_unlit.TryGetValue(key, out var cached)) return cached;
+
+            var shader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
+            var mat = new UnityEngine.Object(shader) { name = "PB_Ghost_" + key.ToString("X") };
+            Color c = color; c.a = alpha;
+            mat.SetColor("_BaseColor", c);
+            mat.SetColor("_Color", c);
+
+            ConfigureTransparent(mat);
+            mat.enableInstancing = false;
+
+            _unlit[key] = mat;
+            return mat;
+        }
+
+        public static void ConfigureTransparent(Material mat)
+        {
+            // URP Lit/Unlit read these to switch into the transparent surface type.
+            mat.SetFloat("_Surface", 1f);
+            mat.SetFloat("_Blend", 0f);
+            mat.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
+            mat.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
+            mat.SetFloat("_ZWrite", 0f);
+            mat.SetFloat("_AlphaClip", 0f);
+            mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+            mat.DisableKeyword("_ALPHATEST_ON");
+            mat.renderQueue = (int)RenderQueue.Transparent;
+        }
+
+        static int Key(Color c, float a, float b, float d)
+        {
+            int rgba = ((Mathf.RoundToInt(c.r * 255) & 0xFF) << 24) |
+                       ((Mathf.RoundToInt(c.g * 255) & 0xFF) << 16) |
+                       ((Mathf.RoundToInt(c.b * 255) & 0xFF) << 8) |
+                       (Mathf.RoundToInt(c.a * 255) & 0xFF);
+            return unchecked(rgba ^ (Mathf.RoundToInt(a * 1000) * 397) ^ (Mathf.RoundToInt(b * 1000) * 7) ^ Mathf.RoundToInt(d * 100));
+        }
+    }
+}
