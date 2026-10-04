@@ -19,7 +19,7 @@ namespace Playble.EchoLoop
         [SerializeField] float _acceleration = 70f;
 
         [Header("Прыжок")]
-        [SerializeField] float _jumpApex = 2.15f;
+        [SerializeField] float _jumpApex = 2.4f;
         [SerializeField] float _gravity = 32f;
         [SerializeField] float _lowJumpGravityMultiplier = 1.9f;
         [SerializeField] float _coyoteTime = 0.1f;

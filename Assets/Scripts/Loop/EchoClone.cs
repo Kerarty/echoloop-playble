@@ -26,9 +26,12 @@ namespace Playble.EchoLoop
             go.transform.SetParent(parent, false);
             go.transform.SetPositionAndRotation(startPosition, startRotation);
 
+            // Габариты совпадают с габаритами игрока: на эхо можно встать,
+            // а расчёт высоты прыжка в дизайне уровней не разъезжается.
             var cc = go.AddComponent<CapsuleCollider>();
-            cc.height = 2f;
-            cc.radius = 0.5f;
+            cc.height = ActorHeight;
+            cc.radius = ActorRadius;
+            cc.center = new Vector3(0f, ActorHeight * 0.5f, 0f);
             cc.direction = 1;
 
             var echo = go.AddComponent<EchoClone>();
