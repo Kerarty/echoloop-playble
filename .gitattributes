@@ -1,0 +1,29 @@
+* text=auto
+
+*.cs        text diff=csharp
+*.asmdef    text
+*.unity     text
+*.prefab    text
+*.asset     text
+*.mat       text
+*.json      text
+*.meta      text
+*.md        text
+
+# Бинарные файлы Unity
+*.png       binary
+*.jpg       binary
+*.wav       binary
+*.mp3       binary
+*.ogg       binary
+*.fbx       binary
+*.ttf       binary
+
+# Служебные папки Unity
+[Ll]ibrary/      linguist-generated=true
+[Tt]emp/         linguist-generated=true
+[Oo]bj/          linguist-generated=true
+[Bb]uild/        linguist-generated=true
+[Bb]uilds/       linguist-generated=true
+[Ll]ogs/         linguist-generated=true
+[Uu]ser[Ss]ettings/ linguist-generated=true
