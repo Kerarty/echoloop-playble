@@ -20,6 +20,7 @@ namespace Playble.EchoLoop
         Transform _actorRoot;
         Vector3 _spawnPoint;
         Quaternion _spawnRotation;
+        int _recordedCount;
 
         public int MaxEchoes => _maxEchoes;
         public int LiveEchoes => _clones.Count;
@@ -38,17 +39,25 @@ namespace Playble.EchoLoop
         public void BeginRecording(int tickCount)
         {
             _recording = new LoopTape(tickCount);
+            _recordedCount = 0;
         }
 
         public void Capture(int tick, Vector3 position, Quaternion rotation)
         {
-            _recording?.Capture(tick, position, rotation);
+            if (_recording == null) return;
+            _recording.Capture(tick, position, rotation);
+            _recordedCount = Mathf.Max(_recordedCount, tick + 1);
         }
 
-        /// <summary>Отправить записанную петлю в архив.</summary>
-        public void CommitRecording()
+        /// <summary>
+        /// Отправить записанную петлю в архив. Хвост дописывается последней позой,
+        /// чтобы прерванная смертью петля тоже была корректной записью.
+        /// </summary>
+        public void CommitRecording(Vector3 tailPosition, Quaternion tailRotation)
         {
             if (_recording == null) return;
+
+            _recording.FillTailFrom(_recordedCount, tailPosition, tailRotation);
 
             _history.Insert(0, _recording);
             while (_history.Count > _maxEchoes) _history.RemoveAt(_history.Count - 1);
@@ -74,6 +83,15 @@ namespace Playble.EchoLoop
             for (int i = 0; i < _clones.Count; i++)
             {
                 _clones[i].Place(tick);
+            }
+        }
+
+        /// <summary>Добавить всех живых эхо в список тел петли (для плит и опасностей).</summary>
+        public void CollectActors(List<LoopActor> into)
+        {
+            for (int i = 0; i < _clones.Count; i++)
+            {
+                if (_clones[i] != null) into.Add(_clones[i]);
             }
         }
 

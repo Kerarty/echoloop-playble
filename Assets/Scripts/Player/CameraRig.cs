@@ -17,16 +17,28 @@ namespace Playble.EchoLoop
 
         Transform _target;
         Vector3 _velocity;
+        Vector3 _bias;
+        float _biasWeight = 0.28f;
         float _shakeAmount;
 
         public void SetTarget(Transform target) => _target = target;
+
+        /// <summary>
+        /// Точка, к которой камера стремится вместе с игроком. Лёгкое смещение
+        /// к центру уровня не даёт игроку «уезжать» в угол кадра на широких картах.
+        /// </summary>
+        public void SetBias(Vector3 point) => _bias = point;
+
+        public void SetBiasWeight(float weight) => _biasWeight = Mathf.Clamp01(weight);
+
+        Vector3 Focus => (_target == null ? _bias : Vector3.Lerp(_target.position, _bias, _biasWeight)) + _focusHeight;
 
         public void Snap()
         {
             if (_target == null) return;
 
             _velocity = Vector3.zero;
-            Vector3 focus = _target.position + _focusHeight;
+            Vector3 focus = Focus;
             transform.position = focus + _offset;
             transform.rotation = Quaternion.LookRotation(focus - transform.position, Vector3.up);
         }
@@ -37,7 +49,7 @@ namespace Playble.EchoLoop
         {
             if (_target == null) return;
 
-            Vector3 focus = _target.position + _focusHeight;
+            Vector3 focus = Focus;
             Vector3 desired = focus + _offset;
 
             transform.position = Vector3.SmoothDamp(transform.position, desired, ref _velocity, _smoothTime);

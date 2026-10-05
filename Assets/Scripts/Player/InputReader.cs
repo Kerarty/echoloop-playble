@@ -84,6 +84,24 @@ namespace Playble.EchoLoop
             return pad != null && pad.buttonSouth.wasPressedThisFrame;
         }
 
+        public static bool UpPressed()
+        {
+            var kb = Keyboard.current;
+            if (kb != null && (kb.wKey.wasPressedThisFrame || kb.upArrowKey.wasPressedThisFrame)) return true;
+
+            var pad = Gamepad.current;
+            return pad != null && pad.dpad.up.wasPressedThisFrame;
+        }
+
+        public static bool DownPressed()
+        {
+            var kb = Keyboard.current;
+            if (kb != null && (kb.sKey.wasPressedThisFrame || kb.downArrowKey.wasPressedThisFrame)) return true;
+
+            var pad = Gamepad.current;
+            return pad != null && pad.dpad.down.wasPressedThisFrame;
+        }
+
         public static bool CancelPressed()
         {
             var kb = Keyboard.current;

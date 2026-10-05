@@ -32,6 +32,19 @@ namespace Playble.EchoLoop
             Rotations[tick] = rotation;
         }
 
+        /// <summary>
+        /// Дописать хвост ленты последней позой. Нужно, когда петля оборвалась смертью:
+        /// иначе эхо телепортировалось бы в начало координат на недописанных тиках.
+        /// </summary>
+        public void FillTailFrom(int recordedCount, Vector3 position, Quaternion rotation)
+        {
+            for (int i = Mathf.Max(0, recordedCount); i < Capacity; i++)
+            {
+                Positions[i] = position;
+                Rotations[i] = rotation;
+            }
+        }
+
         public Vector3 PositionAt(int tick) =>
             Positions[Mathf.Clamp(tick, 0, Capacity - 1)];
 
