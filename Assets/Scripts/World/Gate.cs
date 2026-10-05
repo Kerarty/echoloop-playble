@@ -17,6 +17,7 @@ namespace Playble.EchoLoop
         Vector3 _openPosition;
         int[] _plateIndices = new int[0];
         BoxCollider _collider;
+        Transform _visual;
 
         float _anim;
 
@@ -38,11 +39,17 @@ namespace Playble.EchoLoop
 
         void BuildVisual(Vector3 size)
         {
-            var shell = Primitives.Box(transform, "Shell", Vector3.zero, size, MaterialLibrary.Ghost(Palette.Power, 0.24f));
+            // Вся графика барьера живёт под одним узлом: его можно целиком сжать
+            // при открытии, иначе рёбра остались бы висеть в воздухе над проёмом.
+            var visual = new GameObject("Visual");
+            visual.transform.SetParent(transform, false);
+            _visual = visual.transform;
+
+            var shell = Primitives.Box(_visual, "Shell", Vector3.zero, size, MaterialLibrary.Ghost(Palette.Power, 0.24f));
             _renderers.AddRange(shell.GetComponentsInChildren<MeshRenderer>());
             _collider = shell.GetComponent<BoxCollider>();
 
-            // Полосы-рёбра: барьер должен читаться на любом фоне и с любого ракурса.
+            // Рёбра: барьер должен читаться на любом фоне и с любого ракурса.
             bool vertical = size.y >= size.x && size.y >= size.z;
             int count = Mathf.Clamp(Mathf.RoundToInt(vertical ? size.z : size.x), 2, 7);
 
@@ -59,7 +66,7 @@ namespace Playble.EchoLoop
                     ? new Vector3(size.x * 0.82f, size.y * 0.98f, 0.1f)
                     : new Vector3(0.1f, size.y * 0.98f, size.z * 0.82f);
 
-                var rib = Primitives.Box(transform, "Rib", local, ribSize, MaterialLibrary.Glowing(Palette.Power, 2.4f), false);
+                var rib = Primitives.Box(_visual, "Rib", local, ribSize, MaterialLibrary.Glowing(Palette.Power, 1.5f), false);
                 _renderers.AddRange(rib.GetComponentsInChildren<MeshRenderer>());
             }
         }
@@ -85,27 +92,29 @@ namespace Playble.EchoLoop
             IsOpen = false;
             _anim = 0f;
             transform.position = _closedPosition;
+            if (_visual != null) _visual.localScale = Vector3.one;
             if (_collider != null) _collider.enabled = true;
         }
 
         void Update()
         {
             float target = IsOpen ? 1f : 0f;
-            _anim = Mathf.MoveTowards(_anim, target, Time.deltaTime * (IsOpen ? 6f : 14f));
+            _anim = Mathf.MoveTowards(_anim, target, Time.deltaTime * (IsOpen ? 5f : 14f));
 
             float eased = Mathf.SmoothStep(0f, 1f, _anim);
             transform.position = Vector3.Lerp(_closedPosition, _openPosition, eased);
 
-            // Барьер не должен «зависать» над проёмом: поднимаясь, он растворяется,
-            // а коллайдер отключается сразу — иначе игрока выдавило бы на следующем такте.
-            if (_collider != null) _collider.enabled = _anim < 0.35f;
+            // Барьер уходит вверх и сжимается в ниточку, а коллайдер отключается сразу:
+            // иначе рёбра остались бы висеть в воздухе над проёмом.
+            if (_visual != null) _visual.localScale = Vector3.one * Mathf.Lerp(1f, 0.06f, eased);
+            if (_collider != null) _collider.enabled = _anim < 0.3f;
 
             float q = MaterialLibrary.Quantize(_anim, 8);
             Color tint = Color.Lerp(Palette.Power, Palette.Accent, q);
             float glow = Mathf.Lerp(1.5f, 3.4f, q);
 
             var shellMaterial = MaterialLibrary.Ghost(tint, Mathf.Lerp(0.24f, 0f, q));
-            var ribMaterial = MaterialLibrary.Glowing(tint, glow * (1f - q * 0.55f));
+            var ribMaterial = MaterialLibrary.Glowing(tint, glow * (1f - eased));
 
             for (int i = 0; i < _renderers.Count; i++)
             {
