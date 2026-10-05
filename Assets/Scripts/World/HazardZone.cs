@@ -34,24 +34,49 @@ namespace Playble.EchoLoop
         void BuildVisual(Vector3 size)
         {
             var volume = Primitives.Box(transform, "Volume", Vector3.zero,
-                size, MaterialLibrary.Ghost(Palette.Danger, 0.16f), false);
+                size, MaterialLibrary.Ghost(Palette.Danger, 0.11f), false);
             _renderers.AddRange(volume.GetComponentsInChildren<MeshRenderer>());
 
-            // Полосы предупреждения на верхней грани.
-            int count = Mathf.Max(2, Mathf.RoundToInt(Mathf.Max(size.x, size.z) / 0.55f));
-            var stripeMat = MaterialLibrary.Glowing(Palette.Danger, 2.8f);
+            var barMat = MaterialLibrary.Glowing(Palette.Danger, 2.4f);
+            var rimMat = MaterialLibrary.Glowing(Palette.Danger, 3.4f);
 
-            for (int i = 0; i < count; i++)
+            // Светящаяся рамка по периметру: опасность должна читаться как граница,
+            // а не как пёстрая заливка.
+            float top = size.y * 0.5f + 0.04f;
+            float rim = 0.16f;
+
+            AddRim(new Vector3(0f, top, size.z * 0.5f - rim * 0.5f), new Vector3(size.x, rim, rim));
+            AddRim(new Vector3(0f, top, -size.z * 0.5f + rim * 0.5f), new Vector3(size.x, rim, rim));
+            AddRim(new Vector3(size.x * 0.5f - rim * 0.5f, top, 0f), new Vector3(rim, rim, size.z));
+            AddRim(new Vector3(-size.x * 0.5f + rim * 0.5f, top, 0f), new Vector3(rim, rim, size.z));
+
+            // Редкие поперечины — задают масштаб и читаются как «решётка» над пропастью.
+            float span = Mathf.Max(size.x, size.z);
+            int bars = Mathf.Clamp(Mathf.RoundToInt(span / 2.6f), 2, 7);
+
+            for (int i = 0; i < bars; i++)
             {
-                float t = (i + 0.5f) / count;
-                float x = Mathf.Lerp(-size.x * 0.5f + 0.14f, size.x * 0.5f - 0.14f, t);
+                float t = (i + 0.5f) / bars;
+                bool alongX = size.x >= size.z;
 
-                var stripe = Primitives.Box(transform, "Stripe",
-                    new Vector3(x, size.y * 0.5f + 0.03f, 0f),
-                    new Vector3(size.x / count * 0.45f, 0.06f, size.z * 0.96f), stripeMat, false);
-                stripe.transform.localRotation = Quaternion.Euler(0f, 22f, 0f);
-                _renderers.AddRange(stripe.GetComponentsInChildren<MeshRenderer>());
+                Vector3 position = alongX
+                    ? new Vector3(Mathf.Lerp(-size.x * 0.5f, size.x * 0.5f, t), top, 0f)
+                    : new Vector3(0f, top, Mathf.Lerp(-size.z * 0.5f, size.z * 0.5f, t));
+
+                Vector3 barSize = alongX
+                    ? new Vector3(0.26f, rim, size.z * 0.94f)
+                    : new Vector3(size.x * 0.94f, rim, 0.26f);
+
+                var bar = Primitives.Box(transform, "Bar", position, barSize, barMat, false);
+                _renderers.AddRange(bar.GetComponentsInChildren<MeshRenderer>());
             }
+        }
+
+        void AddRim(Vector3 position, Vector3 rimSize)
+        {
+            var piece = Primitives.Box(transform, "Rim", position, rimSize,
+                MaterialLibrary.Glowing(Palette.Danger, 3.4f), false);
+            _renderers.AddRange(piece.GetComponentsInChildren<MeshRenderer>());
         }
 
         public bool Contains(Vector3 center, Vector3 size)
@@ -63,17 +88,24 @@ namespace Playble.EchoLoop
         {
             _phase += Time.deltaTime;
 
-            float pulse = MaterialLibrary.Quantize(2.4f + Mathf.Sin(_phase * 5f) * 0.9f, 8);
-            float alpha = MaterialLibrary.Quantize(0.13f + Mathf.Sin(_phase * 5f) * 0.04f, 8);
+            float pulse = MaterialLibrary.Quantize(2.2f + Mathf.Sin(_phase * 4f) * 0.7f, 8);
+            float alpha = MaterialLibrary.Quantize(0.09f + Mathf.Sin(_phase * 4f) * 0.03f, 8);
 
-            var stripeMaterial = MaterialLibrary.Glowing(Palette.Danger, pulse);
+            var barMaterial = MaterialLibrary.Glowing(Palette.Danger, pulse);
+            var rimMaterial = MaterialLibrary.Glowing(Palette.Danger, pulse + 1.2f);
             var volumeMaterial = MaterialLibrary.Ghost(Palette.Danger, alpha);
 
             for (int i = 0; i < _renderers.Count; i++)
             {
                 var r = _renderers[i];
                 if (r == null) continue;
-                r.sharedMaterial = r.gameObject.name == "Volume" ? volumeMaterial : stripeMaterial;
+
+                switch (r.gameObject.name)
+                {
+                    case "Volume": r.sharedMaterial = volumeMaterial; break;
+                    case "Rim": r.sharedMaterial = rimMaterial; break;
+                    default: r.sharedMaterial = barMaterial; break;
+                }
             }
         }
     }

@@ -93,43 +93,50 @@ namespace Playble.EchoLoop
 
             _progress.Initialize(LevelDatabase.Count);
 
-            if (_skipMenu || TryReadLevelArgument(out int requestedLevel))
-{
-    if (_skipMenu) StartLevel(_startLevel);
-    else StartLevel(requestedLevel);
-}
-else
-{
-    EnterTitle();
-}
+            // Отладочная точка входа: запуск сразу на нужном уровне.
+            if (TryReadLevelArgument(out int requestedLevel)) StartLevel(requestedLevel);
+            else if (_skipMenu) StartLevel(_startLevel);
+            else EnterTitle();
         }
 
         void SetupEnvironment()
         {
+            // Тёмный ambient + сильный ключевой свет: пазл держится на читаемости
+            // перепадов высот, а не на декорациях.
             RenderSettings.ambientMode = AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(0.17f, 0.19f, 0.25f);
+            RenderSettings.ambientLight = new Color(0.10f, 0.12f, 0.17f);
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
             RenderSettings.fogColor = Palette.Backdrop;
-            RenderSettings.fogDensity = 0.017f;
+            RenderSettings.fogDensity = 0.019f;
 
-            var existing = GameObject.Find("KeyLight");
+            var key = ConfigureLight("KeyLight", new Color(0.88f, 0.93f, 1f), 1.75f, true, Quaternion.Euler(52f, -32f, 0f));
+            key.transform.SetParent(transform, false);
+
+            // Заполняющий свет без теней, чтобы боковые грани не проваливались в ноль.
+            var fill = ConfigureLight("FillLight", new Color(0.35f, 0.45f, 0.7f), 0.35f, false, Quaternion.Euler(18f, 145f, 0f));
+            fill.transform.SetParent(transform, false);
+        }
+
+        static Light ConfigureLight(string name, Color color, float intensity, bool shadows, Quaternion rotation)
+        {
+            var existing = GameObject.Find(name);
             Light light = existing != null ? existing.GetComponent<Light>() : null;
 
             if (light == null)
             {
-                var go = new GameObject("KeyLight");
-                go.transform.SetParent(transform, false);
+                var go = new GameObject(name);
                 light = go.AddComponent<Light>();
                 light.type = LightType.Directional;
             }
 
-            light.name = "KeyLight";
-            light.color = new Color(0.86f, 0.92f, 1f);
-            light.intensity = 1.3f;
-            light.shadows = LightShadows.Soft;
-            light.shadowStrength = 0.62f;
-            light.transform.rotation = Quaternion.Euler(52f, -32f, 0f);
+            light.name = name;
+            light.color = color;
+            light.intensity = intensity;
+            light.shadows = shadows ? LightShadows.Soft : LightShadows.None;
+            light.shadowStrength = 0.7f;
+            light.transform.rotation = rotation;
+            return light;
         }
 
         CameraRig ResolveCamera()

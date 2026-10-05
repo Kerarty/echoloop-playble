@@ -16,6 +16,7 @@ namespace Playble.EchoLoop
         Vector3 _closedPosition;
         Vector3 _openPosition;
         int[] _plateIndices = new int[0];
+        BoxCollider _collider;
 
         float _anim;
 
@@ -37,8 +38,9 @@ namespace Playble.EchoLoop
 
         void BuildVisual(Vector3 size)
         {
-            var shell = Primitives.Box(transform, "Shell", Vector3.zero, size, MaterialLibrary.Ghost(Palette.Power, 0.34f));
+            var shell = Primitives.Box(transform, "Shell", Vector3.zero, size, MaterialLibrary.Ghost(Palette.Power, 0.24f));
             _renderers.AddRange(shell.GetComponentsInChildren<MeshRenderer>());
+            _collider = shell.GetComponent<BoxCollider>();
 
             // Полосы-рёбра: барьер должен читаться на любом фоне и с любого ракурса.
             bool vertical = size.y >= size.x && size.y >= size.z;
@@ -83,19 +85,27 @@ namespace Playble.EchoLoop
             IsOpen = false;
             _anim = 0f;
             transform.position = _closedPosition;
+            if (_collider != null) _collider.enabled = true;
         }
 
         void Update()
         {
             float target = IsOpen ? 1f : 0f;
-            _anim = Mathf.MoveTowards(_anim, target, Time.deltaTime * (IsOpen ? 7f : 16f));
+            _anim = Mathf.MoveTowards(_anim, target, Time.deltaTime * (IsOpen ? 6f : 14f));
 
-            transform.position = Vector3.Lerp(_closedPosition, _openPosition, Mathf.SmoothStep(0f, 1f, _anim));
+            float eased = Mathf.SmoothStep(0f, 1f, _anim);
+            transform.position = Vector3.Lerp(_closedPosition, _openPosition, eased);
 
-            Color tint = Color.Lerp(Palette.Power, Palette.Accent, MaterialLibrary.Quantize(_anim, 8));
-            float glow = Mathf.Lerp(2.2f, 4.5f, MaterialLibrary.Quantize(_anim, 8));
-            var shellMaterial = MaterialLibrary.Ghost(tint, Mathf.Lerp(0.34f, 0.08f, MaterialLibrary.Quantize(_anim, 8)));
-            var ribMaterial = MaterialLibrary.Glowing(tint, glow);
+            // Барьер не должен «зависать» над проёмом: поднимаясь, он растворяется,
+            // а коллайдер отключается сразу — иначе игрока выдавило бы на следующем такте.
+            if (_collider != null) _collider.enabled = _anim < 0.35f;
+
+            float q = MaterialLibrary.Quantize(_anim, 8);
+            Color tint = Color.Lerp(Palette.Power, Palette.Accent, q);
+            float glow = Mathf.Lerp(2.0f, 4.2f, q);
+
+            var shellMaterial = MaterialLibrary.Ghost(tint, Mathf.Lerp(0.24f, 0f, q));
+            var ribMaterial = MaterialLibrary.Glowing(tint, glow * (1f - q * 0.55f));
 
             for (int i = 0; i < _renderers.Count; i++)
             {

@@ -113,12 +113,22 @@ namespace Playble.EditorTools
             volume.sharedProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(VolumeProfilePath);
 
             // --- свет ---
-            var lightGo = new GameObject("KeyLight");
-            var light = lightGo.AddComponent<Light>();
-            light.type = LightType.Directional;
-            light.intensity = 1.3f;
-            light.shadows = LightShadows.Soft;
-            lightGo.transform.rotation = Quaternion.Euler(52f, -32f, 0f);
+            var keyGo = new GameObject("KeyLight");
+            var key = keyGo.AddComponent<Light>();
+            key.type = LightType.Directional;
+            key.color = new Color(0.88f, 0.93f, 1f);
+            key.intensity = 1.75f;
+            key.shadows = LightShadows.Soft;
+            key.shadowStrength = 0.7f;
+            keyGo.transform.rotation = Quaternion.Euler(52f, -32f, 0f);
+
+            var fillGo = new GameObject("FillLight");
+            var fill = fillGo.AddComponent<Light>();
+            fill.type = LightType.Directional;
+            fill.color = new Color(0.35f, 0.45f, 0.7f);
+            fill.intensity = 0.35f;
+            fill.shadows = LightShadows.None;
+            fillGo.transform.rotation = Quaternion.Euler(18f, 145f, 0f);
 
             // --- точка входа ---
             var gameGo = new GameObject("Game");
@@ -126,11 +136,11 @@ namespace Playble.EditorTools
 
             // --- настройки сцены ---
             RenderSettings.ambientMode = AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(0.17f, 0.19f, 0.25f);
+            RenderSettings.ambientLight = new Color(0.10f, 0.12f, 0.17f);
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
             RenderSettings.fogColor = Palette.Backdrop;
-            RenderSettings.fogDensity = 0.017f;
+            RenderSettings.fogDensity = 0.019f;
 
             Directory.CreateDirectory(SceneFolder);
             EditorSceneManager.MarkSceneDirty(scene);

@@ -80,13 +80,20 @@ namespace Playble.EchoLoop
         {
             Primitives.Box(root, "Block", box.Center, box.Size, MaterialFor(box.Tint));
 
-            // Тонкая кромка по верхней грани: даёт «объём» и помогает оценивать высоту.
+            // Без этих двух обводок уровень читается как плоская заливка:
+            // тёмный цоколь даёт «тень» у основания, светлая кромка по верхней
+            // грани — чёткий контур площадки. Опоры и перепады высот видно сразу.
             if (box.Tint == BlockTint.Structure && box.Size.y > 0.3f)
             {
                 Primitives.Box(root, "Trim",
-                    box.Center + new Vector3(0f, box.Size.y * 0.5f + 0.03f, 0f),
-                    new Vector3(box.Size.x * 0.96f, 0.06f, box.Size.z * 0.96f),
-                    MaterialLibrary.Lit(Palette.StructureLight, 0.45f, 0.1f), false);
+                    box.Center + new Vector3(0f, box.Size.y * 0.5f + 0.02f, 0f),
+                    new Vector3(box.Size.x * 0.97f, 0.13f, box.Size.z * 0.97f),
+                    MaterialLibrary.Lit(Palette.Hex(0x66789A), 0.55f, 0.05f), false);
+
+                Primitives.Box(root, "Skirt",
+                    box.Center + new Vector3(0f, -box.Size.y * 0.5f + 0.14f, 0f),
+                    new Vector3(box.Size.x + 0.1f, 0.28f, box.Size.z + 0.1f),
+                    MaterialLibrary.Lit(Palette.Hex(0x121826), 0.15f, 0.1f), false);
             }
         }
 
