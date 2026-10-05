@@ -82,7 +82,7 @@ namespace Playble.EchoLoop
 
             if (_crystalRenderers != null)
             {
-                float glow = 2.8f + Mathf.Sin(t * 3f) * 0.6f;
+                float glow = MaterialLibrary.Quantize(2.8f + Mathf.Sin(t * 3f) * 0.6f, 8);
                 var mat = MaterialLibrary.Glowing(Palette.AccentWarm, glow, 0.85f);
                 for (int i = 0; i < _crystalRenderers.Length; i++)
                     if (_crystalRenderers[i] != null) _crystalRenderers[i].sharedMaterial = mat;

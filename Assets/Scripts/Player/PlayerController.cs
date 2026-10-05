@@ -175,7 +175,7 @@ namespace Playble.EchoLoop
 
             if (_visor != null)
             {
-                float glow = 1.6f + (IsGrounded ? 0f : 1.4f) + SpeedNormalized * 0.8f;
+                float glow = MaterialLibrary.Quantize(1.6f + (IsGrounded ? 0f : 1.4f) + SpeedNormalized * 0.8f, 8);
                 _visorRenderer.sharedMaterial = MaterialLibrary.Glowing(Palette.Accent, glow);
             }
         }

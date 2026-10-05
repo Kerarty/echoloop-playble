@@ -10,9 +10,9 @@ namespace Playble.EchoLoop
     [DisallowMultipleComponent]
     public class CameraRig : MonoBehaviour
     {
-        [SerializeField] Vector3 _offset = new Vector3(0f, 18f, -16f);
+        [SerializeField] Vector3 _offset = new Vector3(0f, 17.5f, -14f);
         [SerializeField] float _smoothTime = 0.16f;
-        [SerializeField] Vector3 _focusHeight = new Vector3(0f, 1.2f, 1.2f);
+        [SerializeField] Vector3 _focusHeight = new Vector3(0f, 1.0f, 0.5f);
         [SerializeField] float _shakeDecay = 5f;
 
         Transform _target;

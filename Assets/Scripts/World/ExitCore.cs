@@ -74,7 +74,7 @@ namespace Playble.EchoLoop
             _phase += Time.deltaTime;
 
             Color tint = IsArmed ? Palette.Accent : Palette.Dim(Palette.StructureLight, 0.3f);
-            float pulse = IsArmed ? 2.6f + Mathf.Sin(_phase * 4f) * 1.1f : 0.7f;
+            float pulse = IsArmed ? MaterialLibrary.Quantize(2.6f + Mathf.Sin(_phase * 4f) * 1.1f, 8) : 0.7f;
             var beamMaterial = MaterialLibrary.Ghost(tint, IsArmed ? 0.13f : 0.04f);
             var ribMaterial = MaterialLibrary.Glowing(tint, pulse);
 

@@ -93,8 +93,15 @@ namespace Playble.EchoLoop
 
             _progress.Initialize(LevelDatabase.Count);
 
-            if (_skipMenu) StartLevel(_startLevel);
-            else EnterTitle();
+            if (_skipMenu || TryReadLevelArgument(out int requestedLevel))
+{
+    if (_skipMenu) StartLevel(_startLevel);
+    else StartLevel(requestedLevel);
+}
+else
+{
+    EnterTitle();
+}
         }
 
         void SetupEnvironment()
@@ -603,6 +610,27 @@ namespace Playble.EchoLoop
                 if (_progress.BestLoops(i) == 0) return i;
             }
             return Mathf.Clamp(_levelIndex, 0, LevelDatabase.Count - 1);
+        }
+
+        /// <summary>
+        /// Отладочная точка входа: запуск сразу на нужном уровне
+        /// (например, PlaybleEchoLoop.exe -level 5). Не влияет на обычный запуск.
+        /// </summary>
+        static bool TryReadLevelArgument(out int levelIndex)
+        {
+            levelIndex = 0;
+
+            string[] args = System.Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length - 1; i++)
+            {
+                if (!string.Equals(args[i], "-level", System.StringComparison.OrdinalIgnoreCase)) continue;
+                if (!int.TryParse(args[i + 1], out int value)) return false;
+
+                levelIndex = Mathf.Clamp(value - 1, 0, LevelDatabase.Count - 1);
+                return true;
+            }
+
+            return false;
         }
     }
 }

@@ -62,9 +62,12 @@ namespace Playble.EchoLoop
         void Update()
         {
             _phase += Time.deltaTime;
-            float pulse = 2.4f + Mathf.Sin(_phase * 5f) * 0.9f;
+
+            float pulse = MaterialLibrary.Quantize(2.4f + Mathf.Sin(_phase * 5f) * 0.9f, 8);
+            float alpha = MaterialLibrary.Quantize(0.13f + Mathf.Sin(_phase * 5f) * 0.04f, 8);
+
             var stripeMaterial = MaterialLibrary.Glowing(Palette.Danger, pulse);
-            var volumeMaterial = MaterialLibrary.Ghost(Palette.Danger, 0.13f + Mathf.Sin(_phase * 5f) * 0.04f);
+            var volumeMaterial = MaterialLibrary.Ghost(Palette.Danger, alpha);
 
             for (int i = 0; i < _renderers.Count; i++)
             {

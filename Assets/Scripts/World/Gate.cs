@@ -92,9 +92,9 @@ namespace Playble.EchoLoop
 
             transform.position = Vector3.Lerp(_closedPosition, _openPosition, Mathf.SmoothStep(0f, 1f, _anim));
 
-            Color tint = Color.Lerp(Palette.Power, Palette.Accent, _anim);
-            float glow = Mathf.Lerp(2.2f, 4.5f, _anim);
-            var shellMaterial = MaterialLibrary.Ghost(tint, Mathf.Lerp(0.34f, 0.08f, _anim));
+            Color tint = Color.Lerp(Palette.Power, Palette.Accent, MaterialLibrary.Quantize(_anim, 8));
+            float glow = Mathf.Lerp(2.2f, 4.5f, MaterialLibrary.Quantize(_anim, 8));
+            var shellMaterial = MaterialLibrary.Ghost(tint, Mathf.Lerp(0.34f, 0.08f, MaterialLibrary.Quantize(_anim, 8)));
             var ribMaterial = MaterialLibrary.Glowing(tint, glow);
 
             for (int i = 0; i < _renderers.Count; i++)

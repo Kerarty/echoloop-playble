@@ -111,8 +111,8 @@ namespace Playble.EchoLoop
             if (_pad != null)
                 _pad.localPosition = new Vector3(0f, _restPadY - 0.16f * _anim, 0f);
 
-            Color tint = Color.Lerp(Palette.Dim(Palette.Accent, 0.5f), Palette.Accent, _anim);
-            var mat = MaterialLibrary.Glowing(tint, Mathf.Lerp(1.0f, 3.4f, _anim));
+            Color tint = Color.Lerp(Palette.Dim(Palette.Accent, 0.5f), Palette.Accent, MaterialLibrary.Quantize(_anim, 8));
+            var mat = MaterialLibrary.Glowing(tint, Mathf.Lerp(1.0f, 3.4f, MaterialLibrary.Quantize(_anim, 8)));
 
             for (int i = 0; i < _padRenderers.Count; i++)
                 if (_padRenderers[i] != null) _padRenderers[i].sharedMaterial = mat;

@@ -81,6 +81,17 @@ namespace Playble.EchoLoop
             mat.renderQueue = (int)RenderQueue.Transparent;
         }
 
+        /// <summary>
+        /// Округляет анимируемое значение до конечного числа ступеней.
+        /// Материалы кэшируются по параметрам, поэтому без этого пульсация
+        /// пересоздавала бы материал каждый кадр.
+        /// </summary>
+        public static float Quantize(float value, int steps = 8)
+        {
+            steps = Mathf.Max(1, steps);
+            return Mathf.Round(value * steps) / steps;
+        }
+
         static Shader FindShader(params string[] names)
         {
             for (int i = 0; i < names.Length; i++)
