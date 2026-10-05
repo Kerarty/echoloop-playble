@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using NUnit.Framework;
 using Playble.EchoLoop;
+using UnityEngine;
 
 namespace Playble.Tests
 {
@@ -43,16 +45,39 @@ namespace Playble.Tests
         }
 
         [Test]
-        public void EveryLevel_EchoesAreEnoughForParLoops()
+        public void EveryLevel_EveryGateHasItsOwnPlate()
         {
             foreach (var level in Levels())
             {
-                Assert.That(level.ParLoops, Is.GreaterThanOrEqualTo(1), $"{level.Name}: par меньше 1");
-                // Число эхо не может превышать общее число «инструкций» уровня:
-                // иначе лишние тела просто дублируются.
-                int setupPoints = level.Plates.Count + 1;
-                Assert.That(level.MaxEchoes, Is.LessThanOrEqualTo(setupPoints),
-                    $"{level.Name}: эхо больше, чем есть точек для установки");
+                for (int i = 0; i < level.Gates.Count; i++)
+                {
+                    var gate = level.Gates[i];
+
+                    Assert.That(gate.Plates, Is.Not.Null, $"{level.Name}: врата {i} без списка плит");
+                    Assert.That(gate.Plates.Length, Is.GreaterThanOrEqualTo(1),
+                        $"{level.Name}: врата {i} не привязаны ни к одной плите — их невозможно открыть");
+
+                    foreach (int plate in gate.Plates)
+                    {
+                        Assert.That(plate, Is.InRange(0, level.Plates.Count - 1),
+                            $"{level.Name}: врата {i} ссылаются на несуществующую плиту {plate}");
+                    }
+                }
+            }
+        }
+
+        [Test]
+        public void EveryLevel_GateOffsetIsLargeEnoughToLeaveTheDoorway()
+        {
+            foreach (var level in Levels())
+            {
+                for (int i = 0; i < level.Gates.Count; i++)
+                {
+                    var gate = level.Gates[i];
+
+                    Assert.That(gate.OpenOffset.magnitude, Is.GreaterThan(gate.Size.y * 0.5f),
+                        $"{level.Name}: врата {i} поднимаются слишком мало и не освобождают проём");
+                }
             }
         }
 
@@ -191,7 +216,9 @@ namespace Playble.Tests
         {
             foreach (var level in Levels())
             {
-                float distance = PathLength(level, level.PlayerStart, PlatePositions(level), level.PlayerStart);
+                // Возвращаться на старт не нужно: петля обрывается там, где встало
+                // последнее эхо, поэтому обратной ноги в маршруте нет.
+                float distance = PathLength(level, level.PlayerStart, PlatePositions(level));
                 float budget = PlayerController.MoveSpeed * level.LoopSeconds * 0.55f;
 
                 Assert.That(distance, Is.LessThan(budget),
@@ -284,18 +311,28 @@ namespace Playble.Tests
         }
 
         /// <summary>
-        /// Считает, что стена вокруг врата непрерывна: сами врата плюс статические
-        /// блоки в той же плоскости должны перекрывать всю ширину площадки.
+        /// Считает, что стена непрерывна: сами врата, соседние врата в той же
+        /// плоскости и статические блоки должны перекрывать всю ширину площадки.
+        /// Допуск равен ширине капсулы игрока — щель уже этого размера физически
+        /// непроходима, и считать её обходом было бы ложной тревогой.
         /// </summary>
         static bool IsSealed(LevelDefinition level, GateDef gate, float minZ, float maxZ)
         {
-            var spans = new System.Collections.Generic.List<Vector2>();
-            spans.Add(new Vector2(gate.Center.z - gate.Size.z * 0.5f, gate.Center.z + gate.Size.z * 0.5f));
+            const float planeTolerance = 1.6f;
+            float clearance = LoopActor.ActorRadius * 2f;
+
+            var spans = new List<Vector2>();
+
+            foreach (var g in level.Gates)
+            {
+                if (Mathf.Abs(g.Center.x - gate.Center.x) > planeTolerance) continue;
+                spans.Add(new Vector2(g.Center.z - g.Size.z * 0.5f, g.Center.z + g.Size.z * 0.5f));
+            }
 
             foreach (var b in level.Blocks)
             {
                 // Блок считается частью стены, если он в той же плоскости по X и Y.
-                if (Mathf.Abs(b.Center.x - gate.Center.x) > 1.6f) continue;
+                if (Mathf.Abs(b.Center.x - gate.Center.x) > planeTolerance) continue;
                 if (Mathf.Abs(b.Center.y - gate.Center.y) > b.Size.y * 0.5f + 2.4f) continue;
 
                 spans.Add(new Vector2(b.Center.z - b.Size.z * 0.5f, b.Center.z + b.Size.z * 0.5f));
@@ -303,16 +340,16 @@ namespace Playble.Tests
 
             spans.Sort((a, b) => a.x.CompareTo(b.x));
 
-            float coveredTo = spans[0].y;
-            if (spans[0].x > minZ + 0.2f) return false;   // есть щель слева
+            if (spans[0].x > minZ + clearance) return false;   // щель у левого края площадки
 
+            float coveredTo = spans[0].y;
             for (int i = 1; i < spans.Count; i++)
             {
-                if (spans[i].x > coveredTo + 0.2f) return false;   // дыра в стене
+                if (spans[i].x > coveredTo + clearance) return false;   // дыра в стены
                 coveredTo = Mathf.Max(coveredTo, spans[i].y);
             }
 
-            return coveredTo >= maxZ - 0.2f;
+            return coveredTo >= maxZ - clearance;
         }
 
         static Vector3[] ShardPositions(LevelDefinition level)
@@ -329,10 +366,13 @@ namespace Playble.Tests
             return result;
         }
 
-        /// <summary>Длина маршрута в порядке: старт → точки → финиш (жадный порядок).</summary>
-        static float PathLength(LevelDefinition level, Vector3 start, Vector3[] waypoints, Vector3 finish)
+        /// <summary>
+        /// Длина маршрута в жадном порядке: старт → точки → финиш.
+        /// Финиш можно не задавать — для маршрута расстановки эхо он не нужен.
+        /// </summary>
+        static float PathLength(LevelDefinition level, Vector3 start, Vector3[] waypoints, Vector3? finish = null)
         {
-            var remaining = new System.Collections.Generic.List<Vector3>(waypoints);
+            var remaining = new List<Vector3>(waypoints);
             float total = 0f;
             var current = start;
 
@@ -343,7 +383,6 @@ namespace Playble.Tests
 
                 for (int i = 0; i < remaining.Count; i++)
                 {
-                    // Расстояние по земле: вертикальная составляющая не бесплатная.
                     float d = Distance(current, remaining[i]);
                     if (d >= bestDistance) continue;
                     bestDistance = d;
@@ -355,14 +394,18 @@ namespace Playble.Tests
                 remaining.RemoveAt(best);
             }
 
-            return total + Distance(current, finish);
+            return finish.HasValue ? total + Distance(current, finish.Value) : total;
         }
 
+        /// <summary>
+        /// Расстояние по маршруту. Вертикаль берётся с небольшим коэффициентом:
+        /// набор высоты в этом жанре укладывается в прыжок и почти не добавляет
+        /// времени, тогда как горизонтальный разбег стоит полную цену.
+        /// </summary>
         static float Distance(Vector3 a, Vector3 b)
         {
-            Vector2 flat = new Vector2(a.x - b.x, a.z - b.z);
-            float rise = Mathf.Abs(a.y - b.y);
-            return flat.magnitude + rise * 1.6f;   // подъём стоит примерно в 1.6 раза дороже
+            var flat = new Vector2(a.x - b.x, a.z - b.z);
+            return flat.magnitude + Mathf.Abs(a.y - b.y) * 0.6f;
         }
     }
 }

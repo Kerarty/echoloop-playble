@@ -96,8 +96,8 @@ namespace Playble.EchoLoop
 
             l.Plate(-2f, 0.1f, 0f);
             l.Gate(4f, 2.2f, 0f, 0.7f, 4.4f, 8f, new Vector3(0f, 5.2f, 0f), 0);
-            l.Block(4f, 2f, -5.8f, 1f, 4f, 2.6f);
-            l.Block(4f, 2f, 5.8f, 1f, 4f, 2.6f);
+            l.Block(4f, 2f, -5.5f, 1f, 4f, 3f);
+            l.Block(4f, 2f, 5.5f, 1f, 4f, 3f);
 
             l.Pedestal(8f, 3f, 4f, 4f, 1.0f, 3f);
             l.Shard(8f, 1.9f, 3f);
@@ -234,6 +234,7 @@ namespace Playble.EchoLoop
             l.Gate(9f, 2.2f, -3f, 0.7f, 4.4f, 5.4f, new Vector3(0f, 5.2f, 0f), 1);
             l.Block(9f, 2f, 0f, 1f, 4f, 1.2f);
             l.Block(9f, 2f, -6.5f, 1f, 4f, 1.6f);
+            l.Block(9f, 2f, 3.8f, 1f, 4f, 6.4f);
 
             l.Pedestal(12f, -3f, 3.2f, 3.2f, 1.0f, 3f);
             l.Shard(12f, 1.9f, -3f);
@@ -266,6 +267,7 @@ namespace Playble.EchoLoop
             l.Gate(-6f, 2.2f, -3f, 0.7f, 4.4f, 5.4f, new Vector3(0f, 5.2f, 0f), 0);
             l.Block(-6f, 2f, 0.6f, 1f, 4f, 1.8f);
             l.Block(-6f, 2f, -6.6f, 1f, 4f, 1.8f);
+            l.Block(-6f, 2f, 4.65f, 1f, 4f, 6.3f);
 
             // Колонна, на которую нельзя запрыгнуть с земли (верх 4.0 м при прыжке 2.4 м).
             l.Pedestal(-1f, 4f, 4f, 4f, 4.0f, 4.0f);
@@ -275,6 +277,7 @@ namespace Playble.EchoLoop
             l.Gate(8f, 2.2f, 4f, 0.7f, 4.4f, 5.4f, new Vector3(0f, 5.2f, 0f), 1);
             l.Block(8f, 2f, 0.2f, 1f, 4f, 2.2f);
             l.Block(8f, 2f, 7.6f, 1f, 4f, 1.8f);
+            l.Block(8f, 2f, -4.35f, 1f, 4f, 6.9f);
 
             l.Pedestal(12f, 4f, 3.2f, 3.2f, 1.0f, 3f);
             l.Shard(12f, 1.9f, 4f);
@@ -292,46 +295,48 @@ namespace Playble.EchoLoop
             var l = new LevelDefinition(
                 "Сердце цикла",
                 "финал",
-                "Три плиты, пропасть и три осколка. У тебя ровно три петли, чтобы всё расставить.");
+                "Три плиты, разлом и три осколка. Трёх петель на подготовку ровно — эшек будет три.");
 
             l.LoopSeconds = 12f;
             l.MaxEchoes = 3;
             l.ParLoops = 4;
 
             l.PlayerStart = new Vector3(-15f, 0.1f, 0f);
-            l.CameraFocus = new Vector3(0f, 1.5f, 0f);
-            l.ExitPosition = new Vector3(16f, 0f, 0f);
+            l.CameraFocus = new Vector3(-1f, 1.5f, 0f);
+            l.ExitPosition = new Vector3(14.5f, 0f, 0f);
             l.ExitRadius = 2.8f;
 
-            l.Pedestal(-13f, 0f, 14f, 16f, 0f);          // западная площадка
-            l.Pedestal(9f, 0f, 18f, 16f, 0f);           // восточная площадка
-            l.Hazard(-2f, 0.6f, 0f, 10f, 1.6f, 16f);   // разлом между ними
+            // Разлом делит уровень надвое: перебраться можно только через эхо.
+            l.Pedestal(-12.5f, 0f, 11f, 16f, 0f);        // западная площадка  x -18..-7
+            l.Pedestal(10.5f, 0f, 13f, 16f, 0f);         // восточная площадка  x  4..17
+            l.Hazard(-1.5f, 0.6f, 0f, 11f, 1.6f, 16f);   // пропасть            x  -7..4
 
-            l.Pedestal(-5.5f, 0f, 2.4f, 2.4f, 1.4f, 1.4f);   // ступень в разломе
-            l.Pedestal(-1.4f, 0f, 2.2f, 2.2f, 4.4f, 4.4f);   // колонна с осколком
+            l.Pedestal(-5.4f, 0f, 2.4f, 2.4f, 1.4f, 1.4f);   // ступень: сюда встаёт эхо
+            l.Pedestal(-0.6f, 0f, 2.2f, 2.2f, 4.4f, 4.4f);   // колонна: только с эхо
 
-            l.Plate(-11f, 0.1f, -5f);
-            l.Gate(-7f, 2.2f, -5f, 0.7f, 4.4f, 5.4f, new Vector3(0f, 5.2f, 0f), 0);
-            l.Block(-7f, 2f, -1.6f, 1f, 4f, 1.8f);
-            l.Block(-7f, 2f, -7.4f, 1f, 4f, 1.8f);
+            // Два замка на западной площадке — зеркальная пара, как в «Двух дверях».
+            l.Plate(-14f, 0.1f, -5f);
+            l.Plate(-14f, 0.1f, 5f);
+            l.Gate(-10f, 2.2f, -5f, 0.7f, 4.4f, 5.4f, new Vector3(0f, 5.2f, 0f), 0);
+            l.Gate(-10f, 2.2f, 5f, 0.7f, 4.4f, 5.4f, new Vector3(0f, 5.2f, 0f), 1);
+            l.Block(-10f, 2f, 0f, 1f, 4f, 5f);
+            l.Block(-10f, 2f, -7.4f, 1f, 4f, 1.8f);
+            l.Block(-10f, 2f, 7.4f, 1f, 4f, 1.8f);
 
-            l.Plate(-5.5f, 0.1f, 5f);
-            l.Gate(-7f, 2.2f, 5f, 0.7f, 4.4f, 5.4f, new Vector3(0f, 5.2f, 0f), 1);
-            l.Block(-7f, 2f, 2.4f, 1f, 4f, 1.8f);
-            l.Block(-7f, 2f, 7.4f, 1f, 4f, 1.8f);
+            l.Shard(-0.6f, 5.3f, 0f);
 
-            l.Shard(-1.4f, 5.3f, 0f);
+            // Один замок на восточной площадке — третье эхо уходит на него.
+            l.Plate(6f, 0.1f, -4f);
+            l.Gate(9f, 2.2f, -4f, 0.7f, 4.4f, 5.4f, new Vector3(0f, 5.2f, 0f), 2);
+            l.Block(9f, 2f, 0f, 1f, 4f, 5f);
+            l.Block(9f, 2f, -7.4f, 1f, 4f, 1.8f);
+            l.Block(9f, 2f, 7.4f, 1f, 4f, 1.8f);
 
-            l.Pedestal(3f, 5f, 3.2f, 3.2f, 1.0f, 3f);
-            l.Shard(3f, 1.9f, 5f);
+            l.Pedestal(12f, 4f, 3.2f, 3.2f, 1.0f, 3f);
+            l.Shard(12f, 1.9f, 4f);
 
-            l.Plate(9f, 0.1f, -4f);
-            l.Gate(13f, 2.2f, -4f, 0.7f, 4.4f, 5.4f, new Vector3(0f, 5.2f, 0f), 2);
-            l.Block(13f, 2f, -0.6f, 1f, 4f, 1.8f);
-            l.Block(13f, 2f, -6.4f, 1f, 4f, 1.8f);
-
-            l.Pedestal(16f, -4f, 3.2f, 3.2f, 1.0f, 3f);
-            l.Shard(16f, 1.9f, -4f);
+            l.Pedestal(13.5f, -4.5f, 3.2f, 3.2f, 1.0f, 3f);
+            l.Shard(13.5f, 1.9f, -4.5f);
 
             return l;
         }

@@ -52,7 +52,6 @@ namespace Playble.EchoLoop
 
         public event Action Died;
         public event Action Jumped;
-        public event Action Landed;
 
         public bool IsGrounded => _cc != null && _cc.isGrounded;
         public Vector3 Velocity => _velocity;

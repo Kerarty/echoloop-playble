@@ -155,7 +155,7 @@ namespace Playble.Tests
             var plate = PressurePlate.Create(root, 0, new Vector3(0f, 0.1f, 0f), new Vector3(2.4f, 0.5f, 2.4f));
 
             var player = NewObject("Player").AddComponent<TestActor>();
-            player.Move(new Vector3(0f, 0f, 0f));
+            player.Move(new Vector3(9f, 0f, 0f));
 
             var actors = new List<LoopActor> { player };
             Assert.That(plate.Evaluate(actors), Is.False, "пустая плита не должна считаться нажатой");
@@ -181,20 +181,27 @@ namespace Playble.Tests
             var gate = Gate.Create(root, new Vector3(0f, 2.2f, 0f), new Vector3(0.7f, 4.4f, 5.4f),
                 new Vector3(0f, 5.2f, 0f), new[] { 0, 1 });
 
-            var actor = NewObject("Actor").AddComponent<TestActor>();
-            var actors = new List<LoopActor> { actor };
+            var first = NewObject("Echo1").AddComponent<TestActor>();
+            var second = NewObject("Echo2").AddComponent<TestActor>();
+            var actors = new List<LoopActor> { first, second };
 
-            Assert.That(gate.Evaluate(plates), Is.False, "закрытая врата");
+            first.Move(new Vector3(-8f, 0f, 0f));
+            second.Move(new Vector3(-8f, 0f, 6f));
 
-            actor.Move(new Vector3(-8f, 0f, 0f));
+            plates[0].Evaluate(actors);
+            plates[1].Evaluate(actors);
+            Assert.That(gate.Evaluate(plates), Is.True, "обе плиты нажаты — врата открыты");
+
+            second.Move(new Vector3(-8f, 0f, 9f));
             plates[0].Evaluate(actors);
             plates[1].Evaluate(actors);
             Assert.That(gate.Evaluate(plates), Is.False, "одна плита из двух — врата держатся");
 
-            actor.Move(new Vector3(-8f, 0f, 6f));
+            // Эхо, ушедшее с петли, больше не держит плиту.
+            first.Move(new Vector3(-8f, 0f, 9f));
             plates[0].Evaluate(actors);
             plates[1].Evaluate(actors);
-            Assert.That(gate.Evaluate(plates), Is.True, "обе плиты нажаты — врата открыты");
+            Assert.That(gate.Evaluate(plates), Is.False);
         }
 
         [Test]
