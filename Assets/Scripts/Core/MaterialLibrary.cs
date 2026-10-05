@@ -5,9 +5,8 @@ using UnityEngine.Rendering;
 namespace Playble.EchoLoop
 {
     /// <summary>
-    /// Lazily builds and caches the handful of URP materials the game needs.
-    /// Nothing is authored as an asset: the entire visual language is code, which
-    /// keeps the repository free of binary art dependencies.
+    /// Ленивый кэш материалов. Весь визуальный язык игры описан кодом,
+    /// поэтому в репозитории нет ни одного бинарного ассета с текстурами.
     /// </summary>
     public static class MaterialLibrary
     {
@@ -19,8 +18,7 @@ namespace Playble.EchoLoop
             int key = Key(color, smoothness, metallic, emission);
             if (_lit.TryGetValue(key, out var cached)) return cached;
 
-            var shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
-            var mat = new UnityEngine.Object.Instantiate(shader != null ? shader : null);
+            var mat = new Material(FindShader("Universal Render Pipeline/Lit", "Standard"));
             mat.name = "PB_Lit_" + key.ToString("X");
             mat.SetColor("_BaseColor", color);
             mat.SetColor("_Color", color);
@@ -44,38 +42,55 @@ namespace Playble.EchoLoop
             return Lit(color, smoothness, 0f, intensity);
         }
 
-        /// <summary>Flat, unlit, unshadowed colour — used for the ghost echoes.</summary>
+        /// <summary>Плоский, неосвещаемый, полупрозрачный цвет — материал эхо.</summary>
         public static Material Ghost(Color color, float alpha)
         {
             int key = Key(color, alpha, 0f, 0f);
             if (_unlit.TryGetValue(key, out var cached)) return cached;
 
-            var shader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
-            var mat = new UnityEngine.Object(shader) { name = "PB_Ghost_" + key.ToString("X") };
-            Color c = color; c.a = alpha;
+            var mat = new Material(FindShader("Universal Render Pipeline/Unlit", "Unlit/Color", "Sprites/Default"));
+            mat.name = "PB_Ghost_" + key.ToString("X");
+
+            Color c = color;
+            c.a = alpha;
             mat.SetColor("_BaseColor", c);
             mat.SetColor("_Color", c);
 
             ConfigureTransparent(mat);
-            mat.enableInstancing = false;
 
             _unlit[key] = mat;
             return mat;
         }
 
+        /// <summary>
+        /// Переводит URP-материал в прозрачный режим. Набор ключей и очередь
+        /// прозрачности у URP-шейдеров задаются именно этими свойствами.
+        /// </summary>
         public static void ConfigureTransparent(Material mat)
         {
-            // URP Lit/Unlit read these to switch into the transparent surface type.
             mat.SetFloat("_Surface", 1f);
             mat.SetFloat("_Blend", 0f);
             mat.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
             mat.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
             mat.SetFloat("_ZWrite", 0f);
             mat.SetFloat("_AlphaClip", 0f);
+
             mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
             mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
             mat.DisableKeyword("_ALPHATEST_ON");
             mat.renderQueue = (int)RenderQueue.Transparent;
+        }
+
+        static Shader FindShader(params string[] names)
+        {
+            for (int i = 0; i < names.Length; i++)
+            {
+                var shader = Shader.Find(names[i]);
+                if (shader != null) return shader;
+            }
+
+            // Шейкер, который гарантированно есть в любой сборке.
+            return Shader.Find("Sprites/Default");
         }
 
         static int Key(Color c, float a, float b, float d)
@@ -84,6 +99,7 @@ namespace Playble.EchoLoop
                        ((Mathf.RoundToInt(c.g * 255) & 0xFF) << 16) |
                        ((Mathf.RoundToInt(c.b * 255) & 0xFF) << 8) |
                        (Mathf.RoundToInt(c.a * 255) & 0xFF);
+
             return unchecked(rgba ^ (Mathf.RoundToInt(a * 1000) * 397) ^ (Mathf.RoundToInt(b * 1000) * 7) ^ Mathf.RoundToInt(d * 100));
         }
     }

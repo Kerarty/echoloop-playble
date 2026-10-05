@@ -159,12 +159,12 @@ namespace Playble.EchoLoop
         public void SetShards(int collected, int total)
         {
             _shardLabel.text = "ОСКОЛКИ  " + collected + " / " + total;
-            RebuildPips(_shardPipRoot, _shardPips, total, i => i < collected, Palette.AccentWarm);
+            RebuildPips(_shardPipRoot.rectTransform, _shardPips, total, i => i < collected, Palette.AccentWarm);
         }
 
         public void SetEchoes(int live, int max)
         {
-            RebuildPips(_echoRoot, _echoPips, max, i => i < live, Palette.Accent);
+            RebuildPips(_echoRoot.rectTransform, _echoPips, max, i => i < live, Palette.Accent);
         }
 
         static void RebuildPips(RectTransform root, List<Image> pips, int count, System.Func<int, bool> filled, Color color)

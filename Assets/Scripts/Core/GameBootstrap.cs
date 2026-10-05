@@ -185,7 +185,7 @@ namespace Playble.EchoLoop
             _cameraRig.Snap();
 
             _hud.SetLevel(def.Name, def.Subtitle);
-            _hud.SetShards(0, def.ShardsTotal);
+            _hud.SetShards(0, def.ShardCount);
             _hud.SetEchoes(0, def.MaxEchoes);
             _hud.SetCycle(0);
             _hud.SetTimer(0f);

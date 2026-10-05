@@ -46,8 +46,8 @@ namespace Playble.EchoLoop
         void BuildVisual()
         {
             // С возрастом эхо тускнеют: ближайшая петля — самая яркая подсказка.
-            Color tint = Palette.Lerp(Palette.Accent, Palette.Dim(Palette.Accent, 0.55f), Mathf.Clamp01(age / 3f));
-            float alpha = Mathf.Lerp(0.42f, 0.16f, Mathf.Clamp01(age / 3f));
+            Color tint = Palette.Lerp(Palette.Accent, Palette.Dim(Palette.Accent, 0.55f), Mathf.Clamp01(Age / 3f));
+            float alpha = Mathf.Lerp(0.42f, 0.16f, Mathf.Clamp01(Age / 3f));
 
             _shell = Primitives.Capsule(transform, "Shell", new Vector3(0f, ActorHeight * 0.5f, 0f),
                 ActorHeight, ActorRadius, MaterialLibrary.Ghost(tint, alpha)).transform;
@@ -56,7 +56,7 @@ namespace Playble.EchoLoop
                 ActorHeight * 0.42f, ActorRadius * 0.42f, MaterialLibrary.Ghost(tint, Mathf.Min(0.85f, alpha + 0.4f))).transform;
 
             _renderers = GetComponentsInChildren<MeshRenderer>(true);
-            _bobPhase = age * 1.7f;
+            _bobPhase = Age * 1.7f;
         }
 
         /// <summary>Поставить эхо в позу, записанную на такте <paramref name="tick"/>.</summary>

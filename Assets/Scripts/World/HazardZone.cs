@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Playble.EchoLoop
@@ -9,7 +10,8 @@ namespace Playble.EchoLoop
     [DisallowMultipleComponent]
     public class HazardZone : MonoBehaviour
     {
-        MeshRenderer[] _renderers;
+        readonly List<MeshRenderer> _renderers = new List<MeshRenderer>();
+
         Vector3 _center;
         Vector3 _size;
         float _phase;
@@ -33,7 +35,7 @@ namespace Playble.EchoLoop
         {
             var volume = Primitives.Box(transform, "Volume", Vector3.zero,
                 size, MaterialLibrary.Ghost(Palette.Danger, 0.16f), false);
-            _renderers = volume.GetComponentsInChildren<MeshRenderer>();
+            _renderers.AddRange(volume.GetComponentsInChildren<MeshRenderer>());
 
             // Полосы предупреждения на верхней грани.
             int count = Mathf.Max(2, Mathf.RoundToInt(Mathf.Max(size.x, size.z) / 0.55f));
@@ -43,11 +45,12 @@ namespace Playble.EchoLoop
             {
                 float t = (i + 0.5f) / count;
                 float x = Mathf.Lerp(-size.x * 0.5f + 0.14f, size.x * 0.5f - 0.14f, t);
+
                 var stripe = Primitives.Box(transform, "Stripe",
                     new Vector3(x, size.y * 0.5f + 0.03f, 0f),
                     new Vector3(size.x / count * 0.45f, 0.06f, size.z * 0.96f), stripeMat, false);
                 stripe.transform.localRotation = Quaternion.Euler(0f, 22f, 0f);
-                _renderers = System.Linq.Enumerable.Concat(_renderers, stripe.GetComponentsInChildren<MeshRenderer>()).ToArray();
+                _renderers.AddRange(stripe.GetComponentsInChildren<MeshRenderer>());
             }
         }
 
@@ -60,14 +63,14 @@ namespace Playble.EchoLoop
         {
             _phase += Time.deltaTime;
             float pulse = 2.4f + Mathf.Sin(_phase * 5f) * 0.9f;
-            var mat = MaterialLibrary.Glowing(Palette.Danger, pulse);
-            var volume = MaterialLibrary.Ghost(Palette.Danger, 0.13f + Mathf.Sin(_phase * 5f) * 0.04f);
+            var stripeMaterial = MaterialLibrary.Glowing(Palette.Danger, pulse);
+            var volumeMaterial = MaterialLibrary.Ghost(Palette.Danger, 0.13f + Mathf.Sin(_phase * 5f) * 0.04f);
 
-            for (int i = 0; i < _renderers.Length; i++)
+            for (int i = 0; i < _renderers.Count; i++)
             {
                 var r = _renderers[i];
                 if (r == null) continue;
-                r.sharedMaterial = r.gameObject.name == "Volume" ? volume : mat;
+                r.sharedMaterial = r.gameObject.name == "Volume" ? volumeMaterial : stripeMaterial;
             }
         }
     }

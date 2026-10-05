@@ -1,4 +1,5 @@
 using System.IO;
+using Playble.EchoLoop;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -100,7 +101,7 @@ namespace Playble.EditorTools
             camGo.AddComponent<CameraRig>();
             camGo.transform.position = new Vector3(0f, 18f, -16f);
 
-            var camData = camGo.GetUniversalAdditionalCameraData();
+            var camData = cam.GetUniversalAdditionalCameraData();
             camData.renderPostProcessing = true;
             camData.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
 
