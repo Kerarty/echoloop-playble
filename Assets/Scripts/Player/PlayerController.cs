@@ -13,14 +13,20 @@ namespace Playble.EchoLoop
     [DisallowMultipleComponent]
     public class PlayerController : LoopActor
     {
+        // Публичные константы — единый источник правды для дизайна уровней и тестов.
+        public const float MoveSpeed = 7.2f;
+        public const float JumpApex = 2.4f;
+        public const float Gravity = 32f;
+        public const float ActorStep = LoopActor.ActorHeight;
+
         [Header("Движение")]
-        [SerializeField] float _moveSpeed = 7.2f;
+        [SerializeField] float _moveSpeed = MoveSpeed;
         [SerializeField] float _airControl = 0.7f;
         [SerializeField] float _acceleration = 70f;
 
         [Header("Прыжок")]
-        [SerializeField] float _jumpApex = 2.4f;
-        [SerializeField] float _gravity = 32f;
+        [SerializeField] float _jumpApex = JumpApex;
+        [SerializeField] float _gravity = Gravity;
         [SerializeField] float _lowJumpGravityMultiplier = 1.9f;
         [SerializeField] float _coyoteTime = 0.1f;
         [SerializeField] float _jumpBufferTime = 0.12f;

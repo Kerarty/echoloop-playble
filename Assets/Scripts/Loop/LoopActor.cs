@@ -13,6 +13,12 @@ namespace Playble.EchoLoop
         public const float ActorHeight = 1.8f;
         public const float ActorRadius = 0.35f;
 
+        /// <summary>
+        /// Высота, до которой допрыгивает игрок, встав на эхо (1.8 м) и подпрыгнув.
+        /// Ровно это число дизайнер уровней держит как предел для «эхо-платформ».
+        /// </summary>
+        public const float EchoStepHeight = ActorHeight + PlayerController.JumpApex;
+
         static readonly Vector3 ActorSize = new Vector3(ActorRadius * 2f, ActorHeight, ActorRadius * 2f);
 
         /// <summary>Центр объёма тела в мировых координатах.</summary>

@@ -102,7 +102,7 @@ namespace Playble.EchoLoop
 
             float q = MaterialLibrary.Quantize(_anim, 8);
             Color tint = Color.Lerp(Palette.Power, Palette.Accent, q);
-            float glow = Mathf.Lerp(2.0f, 4.2f, q);
+            float glow = Mathf.Lerp(1.5f, 3.4f, q);
 
             var shellMaterial = MaterialLibrary.Ghost(tint, Mathf.Lerp(0.24f, 0f, q));
             var ribMaterial = MaterialLibrary.Glowing(tint, glow * (1f - q * 0.55f));

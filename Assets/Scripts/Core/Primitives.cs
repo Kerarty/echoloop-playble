@@ -83,13 +83,23 @@ namespace Playble.EchoLoop
 
         static Mesh _cube, _sphere, _capsule;
 
+        /// <summary>
+        /// Временный примитив нужен только ради встроенного меша, поэтому
+        /// уничтожается сразу же — и в PlayMode, и в EditMode (в тестах).
+        /// </summary>
+        static void Dispose(GameObject go)
+        {
+            if (Application.isPlaying) Object.Destroy(go);
+            else Object.DestroyImmediate(go);
+        }
+
         public static Mesh UnitCube()
         {
             if (_cube == null)
             {
                 var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 _cube = go.GetComponent<MeshFilter>().sharedMesh;
-                Object.Destroy(go);
+                Dispose(go);
             }
             return _cube;
         }
@@ -100,7 +110,7 @@ namespace Playble.EchoLoop
             {
                 var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 _sphere = go.GetComponent<MeshFilter>().sharedMesh;
-                Object.Destroy(go);
+                Dispose(go);
             }
             return _sphere;
         }
@@ -111,7 +121,7 @@ namespace Playble.EchoLoop
             {
                 var go = GameObject.CreatePrimitive(PrimitiveType.Capsule);
                 _capsule = go.GetComponent<MeshFilter>().sharedMesh;
-                Object.Destroy(go);
+                Dispose(go);
             }
             return _capsule;
         }

@@ -88,7 +88,7 @@ namespace Playble.EchoLoop
                 Primitives.Box(root, "Trim",
                     box.Center + new Vector3(0f, box.Size.y * 0.5f + 0.02f, 0f),
                     new Vector3(box.Size.x * 0.97f, 0.13f, box.Size.z * 0.97f),
-                    MaterialLibrary.Lit(Palette.Hex(0x66789A), 0.55f, 0.05f), false);
+                    MaterialLibrary.Lit(Palette.Hex(0x51627E), 0.55f, 0.05f), false);
 
                 Primitives.Box(root, "Skirt",
                     box.Center + new Vector3(0f, -box.Size.y * 0.5f + 0.14f, 0f),
